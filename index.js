@@ -47,22 +47,37 @@ app.post('/api/v1/pets', async (req, res) => {
     res.status(500).send({ error: 'An error occurred', message: error.message });
   }
 });
-
 app.get('/api/v1/pets', async (req, res) => {
   try {
-    
-    let category = {}
-    if(req?.query?.category){
-      category ={category:req.query.category}
-      console.log(category);
+    let query = {};
+
+    if (req?.query?.category) {
+      query = { ...query, category: req.query.category };
+      console.log(query);
     }
 
-    const result = await petsCollection.find(category).toArray();
+    if (req?.query?.name) {
+      const nameRegex = new RegExp(req.query.name, 'i');
+      query = { ...query, name: { $regex: nameRegex } };
+      console.log(query);
+    }
+    if (req?.query?.adopted !== undefined) {
+
+      const adoptedValue = req.query.adopted === 'true';
+    
+      query = { ...query, adopted: adoptedValue };
+      console.log(query);
+    }
+    
+    console.log('Final Query:', query)
+    const result = await petsCollection.find(query).toArray();
     res.send(result);
   } catch (error) {
     res.status(500).send({ error: 'An error occurred', message: error.message });
   }
 });
+
+
 
 // Welcome route
 app.get('/', (req, res) => {
