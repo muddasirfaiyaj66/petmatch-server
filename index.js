@@ -156,6 +156,19 @@ app.post('/api/v1/logout', async(req,res)=>{
   } catch (error) {
     res.status(500).send({ error: 'An error occurred', message: error.message });
   }
+ });
+
+ app.delete('/api/v1/users/:id', async(req,res)=>{
+  try{
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)};
+    const result = await usersCollection.deleteOne(query);
+    res.send(result)
+
+  }
+  catch (error) {
+    res.status(500).send({ error: 'An error occurred', message: error.message });
+  }
  })
 
 // Pets collection API
