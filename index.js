@@ -9,8 +9,14 @@ const app = express();
 const port =process.env.PORT || 5000;
 
 // Middlewares
-app.use(cors());
-app.use(express.json());
+app.use(express.json())
+app.use(cookieParser())
+app.use(cors({
+    origin:['http://localhost:5173'],
+    
+    
+    credentials: true
+}))
 
 // MongoDB connection
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rrl4awm.mongodb.net/?retryWrites=true&w=majority`;
@@ -49,28 +55,51 @@ const verifyToken = async (req,res,next)=>{
     req.user =decoded;
     next();
   })
-}
+};
+
+
+//Collections 
+const petsCollection = client.db('petMasterDB').collection('pets');
+const usersCollection = client.db('petMasterDB').collection('users');
+
+
 //auth related api
 
-app.post('/api/v1/jwt', async (req,res)=>{
+app.post('/api/v1/jwt',  async (req, res) => {
   const user = req.body;
-  const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{expiresIn:'1h'});
+  
+  const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
 
-  res.cookie('token',token{
-    httpOnly:true,
-    secure:true,
-    sameSite: 'none'
+  res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none'
   })
-  .send({success:true})
+      .send({ success: true });
 })
+
 app.post('/api/v1/logout', async(req,res)=>{
   const user= req.body;
   res.clearCookie('token', {maxAge:0}).send({success:true})
 })
+ //user related api 
+ app.post('/api/v1/users', async(req,res)=>{
+ try{
+  const user = req.body;
+  const query = {email:user.email};
+  const existingUser = await usersCollection.findOne(query);
+  if(existingUser){
+    return res.send({message: 'User already exist', insertedId:null})
+  }
+  const result = await usersCollection.insertOne(user);
+  res.send(result);
+  
+ }catch (error) {
+  res.status(500).send({ error: 'An error occurred', message: error.message });
+}
+ })
 
 // Pets collection API
-const petsCollection = client.db('petMasterDB').collection('pets');
-
 app.post('/api/v1/pets', async (req, res) => {
   try {
     const data = req.body;
