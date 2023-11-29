@@ -137,6 +137,25 @@ app.post('/api/v1/logout', async(req,res)=>{
   catch (error) {
     res.status(500).send({ error: 'An error occurred', message: error.message });
   }
+ });
+
+ app.get('/api/v1/users/admin', async(req,res)=>{
+  try{
+    let email = req.query.email;
+    if(email !== req.decoded.email){
+      return res.status(403).send({message:"Forbidden Access"})
+    }
+    const query = {email:email}
+    const user = await usersCollection.findOne(query);
+    let admin = false;
+    if(user){
+      admin = user?.role === "admin"
+    }
+    res.send({admin});
+
+  } catch (error) {
+    res.status(500).send({ error: 'An error occurred', message: error.message });
+  }
  })
 
 // Pets collection API
