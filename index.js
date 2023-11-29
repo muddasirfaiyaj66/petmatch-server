@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 require('dotenv').config()
@@ -102,6 +102,17 @@ app.post('/api/v1/logout', async(req,res)=>{
  app.get('/api/v1/users', async(req,res)=>{
   try{
     const result = await usersCollection.find().toArray();
+    res.send(result);
+
+  }catch (error) {
+  res.status(500).send({ error: 'An error occurred', message: error.message });
+}
+ });
+ app.get('/api/v1/users/:id', async(req,res)=>{
+  try{
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)};
+    const result = await usersCollection.findOne(query);
     res.send(result);
 
   }catch (error) {
