@@ -97,6 +97,16 @@ app.post('/api/v1/logout', async(req,res)=>{
  }catch (error) {
   res.status(500).send({ error: 'An error occurred', message: error.message });
 }
+ });
+
+ app.get('/api/v1/users', async(req,res)=>{
+  try{
+    const result = await usersCollection.find().toArray();
+    res.send(result);
+
+  }catch (error) {
+  res.status(500).send({ error: 'An error occurred', message: error.message });
+}
  })
 
 // Pets collection API
