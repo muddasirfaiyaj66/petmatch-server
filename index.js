@@ -118,6 +118,25 @@ app.post('/api/v1/logout', async(req,res)=>{
   }catch (error) {
   res.status(500).send({ error: 'An error occurred', message: error.message });
 }
+ });
+
+ //make admin 
+ app.patch('/api/v1/users/admin/:id', verifyToken, async(req,res)=>{
+  try{
+    const id = req.params.id;
+    const filter = {_id: new ObjectId(id)}
+    const updatedDoc = {
+      $set:{
+        role:"admin"
+      }
+    }
+    const result = await usersCollection.updateOne(filter,updatedDoc);
+    res.send(result);
+
+  }
+  catch (error) {
+    res.status(500).send({ error: 'An error occurred', message: error.message });
+  }
  })
 
 // Pets collection API
