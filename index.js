@@ -69,8 +69,12 @@ app.get('/api/v1/pets', async (req, res) => {
       console.log(query);
     }
     
-    console.log('Final Query:', query)
-    const result = await petsCollection.find(query).toArray();
+    const sortOrder = req?.query?.sortOrder === 'asc' ? 1 : -1;
+    const sortField = req?.query?.sortField || 'date';
+
+    /// search method: api/v1/pets?sortOrder=asc&sortField=name
+
+    const result = await petsCollection.find(query).sort({ [sortField]: sortOrder }).toArray();
     res.send(result);
   } catch (error) {
     res.status(500).send({ error: 'An error occurred', message: error.message });
