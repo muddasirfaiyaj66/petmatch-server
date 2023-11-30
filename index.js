@@ -182,40 +182,65 @@ app.post('/api/v1/pets', async (req, res) => {
     res.status(500).send({ error: 'An error occurred', message: error.message });
   }
 });
+
+
 app.get('/api/v1/pets', async (req, res) => {
   try {
     let query = {};
 
     if (req?.query?.category) {
       query = { ...query, category: req.query.category };
-      console.log(query);
+     
     }
 
     if (req?.query?.name) {
       const nameRegex = new RegExp(req.query.name, 'i');
       query = { ...query, name: { $regex: nameRegex } };
-      console.log(query);
+     
     }
     if (req?.query?.adopted !== undefined) {
 
       const adoptedValue = req.query.adopted === 'true';
     
       query = { ...query, adopted: adoptedValue };
-      console.log(query);
+      
     }
     
     const sortOrder = req?.query?.sortOrder === 'asc' ? 1 : -1;
     const sortField = req?.query?.sortField || 'date';
 
-    /// search method: api/v1/pets?sortOrder=asc&sortField=name
+    
+    const page = parseInt(req?.query?.page) ;
+    const limit = parseInt(req?.query?.limit); 
+    const skip = (page - 1) * limit;
 
-    const result = await petsCollection.find(query).sort({ [sortField]: sortOrder }).toArray();
+    const result = await petsCollection
+      .find(query)
+      .sort({ [sortField]: sortOrder })
+      .limit(limit)
+      .skip(skip)
+      .toArray();
+
+
+    /// search method: api/v1/pets?category=${categoryValue}&name=${searchValue}&sortOrder=dsc&sortField=date&adopted=false&page=2&limit=10
     res.send(result);
   } catch (error) {
     res.status(500).send({ error: 'An error occurred', message: error.message });
   }
 });
+app.get('/api/v1/pets/:id', async(req,res)=>{
+  try{
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)};
+    const result = await petsCollection.findOne(query);
 
+    res.send(result)
+
+  } catch (error) {
+    res.status(500).send({ error: 'An error occurred', message: error.message });
+  }
+
+})
 
 
 // Welcome route
