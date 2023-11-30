@@ -61,6 +61,7 @@ const verifyToken = async (req,res,next)=>{
 //Collections 
 const petsCollection = client.db('petMasterDB').collection('pets');
 const usersCollection = client.db('petMasterDB').collection('users');
+const adoptsCollection = client.db('petMasterDB').collection('adopts');
 
 
 //auth related api
@@ -171,6 +172,18 @@ app.post('/api/v1/logout', async(req,res)=>{
   }
  })
 
+//adopted collection
+ app.post('/api/v1/adopts', async (req, res) => {
+  try {
+    const data = req.body;
+    console.log(data);
+    const result = await adoptsCollection.insertOne(data);
+   res.send(result)
+  } catch (error) {
+    res.status(500).send({ error: 'An error occurred', message: error.message });
+  }
+});
+
 // Pets collection API
 app.post('/api/v1/pets', async (req, res) => {
   try {
@@ -198,11 +211,9 @@ app.get('/api/v1/pets', async (req, res) => {
       query = { ...query, name: { $regex: nameRegex } };
      
     }
-    if (req?.query?.adopted !== undefined) {
-
-      const adoptedValue = req.query.adopted === 'true';
+    if (req?.query?.adopted ) {
     
-      query = { ...query, adopted: adoptedValue };
+      query = { ...query, adopted:req?.query?.adopted};
       
     }
     
@@ -241,6 +252,29 @@ app.get('/api/v1/pets/:id', async(req,res)=>{
   }
 
 })
+
+app.put('/api/v1/pets/:id', async (req, res) => {
+  try {
+    const id = {_id:new ObjectId(req.params.id)};
+    const body = req.body;
+    
+  
+    const UpdatedBook = {
+      $set: {
+       ...body,
+
+      },
+
+    };
+    const option ={upsert:true};
+    const result = await petsCollection.updateOne(id, UpdatedBook,option);
+
+   res.send(result);
+  } catch (error) {
+    res.status(500).send('An error occurred: ' + error.message);
+  }
+
+});
 
 
 // Welcome route
