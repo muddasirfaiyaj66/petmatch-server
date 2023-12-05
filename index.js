@@ -104,7 +104,7 @@ app.post('/api/v1/logout', async(req,res)=>{
 }
  });
 
- app.get('/api/v1/users', async(req,res)=>{
+ app.get('/api/v1/users',verifyToken, async(req,res)=>{
   try{
     const result = await usersCollection.find().toArray();
     res.send(result);
@@ -113,7 +113,7 @@ app.post('/api/v1/logout', async(req,res)=>{
   res.status(500).send({ error: 'An error occurred', message: error.message });
 }
  });
- app.get('/api/v1/users/:id', async(req,res)=>{
+ app.get('/api/v1/users/:id',verifyToken, async(req,res)=>{
   try{
     const id = req.params.id;
     const query = {_id: new ObjectId(id)};
@@ -147,9 +147,7 @@ app.post('/api/v1/logout', async(req,res)=>{
 
  app.get('/api/v1/users/admin/:email', verifyToken,  async (req, res) => {
   const email = req.params.email;
-  if (email !== req.decoded.email) {
-    return res.status(403).send({ message: 'Forbidden access' })
-  }
+  
   const query = { email: email }
   const user = await usersCollection.findOne(query);
   let admin = false;
@@ -159,7 +157,7 @@ app.post('/api/v1/logout', async(req,res)=>{
   res.send({ admin })
 });
 
- app.delete('/api/v1/users/:id', async(req,res)=>{
+ app.delete('/api/v1/users/:id',verifyToken, async(req,res)=>{
   try{
     const id = req.params.id;
     const query = {_id: new ObjectId(id)};
@@ -173,7 +171,7 @@ app.post('/api/v1/logout', async(req,res)=>{
  })
 
 //adopted collection
- app.post('/api/v1/adopts', async (req, res) => {
+ app.post('/api/v1/adopts',verifyToken, async (req, res) => {
   try {
     const data = req.body;
     const result = await adoptsCollection.insertOne(data);
@@ -182,7 +180,7 @@ app.post('/api/v1/logout', async(req,res)=>{
     res.status(500).send({ error: 'An error occurred', message: error.message });
   }
 });
-app.get('/api/v1/adopts', async(req,res)=>{
+app.get('/api/v1/adopts',verifyToken, async(req,res)=>{
   try{
     const page = parseInt(req?.query?.page) ;
     const limit = parseInt(req?.query?.limit); 
@@ -195,16 +193,12 @@ app.get('/api/v1/adopts', async(req,res)=>{
   }
 });
 
-app.delete('/ap1/v1/adopt/:id', async (req,res)=>{
+app.delete('/api/v1/adopts/:id', verifyToken, async(req,res)=>{
   try{
-
-   const id = req.params.id;
-
-const filter = {_id: new ObjectId(id)}
-    
-    const result = await adoptsCollection.deleteOne(filter);
-
-    res.send(result);
+    const id = req.params.id;
+    const filter = {petId : id}
+    const result = await adoptsCollection.deleteMany(filter)
+    res.send(result) 
 
   }catch (error) {
     res.status(500).send({ error: 'An error occurred', message: error.message });
@@ -360,7 +354,19 @@ app.get('/api/v1/totalPetsData', async (req, res) => {
     res.status(500).send({ error: 'Internal Server Error' });
   }
 });
-
+app.delete('/api/v1/pets/:id', async(req,res)=>{
+  try{
+    const id = req.params.id;
+    const filter = { _id : new ObjectId(id)};
+    const result =await petsCollection.deleteOne(filter);
+    res.send(result)
+  }
+  catch (error) {
+    console.error( error);
+   
+    res.status(500).send({ error: 'Internal Server Error' });
+  }
+})
 //donation campaign 
 app.post('/api/v1/donationCampaigns', async(req,res)=>{
   try{
